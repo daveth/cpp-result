@@ -269,7 +269,10 @@ public:
 };
 
 template <typename Error>
+// clang-format off
+requires(std::is_object_v<Error>)
 class [[nodiscard]] result<Error, void>
+// clang-format on
 {
   using data_optional_t = std::optional<Error>;
   data_optional_t m_data;
