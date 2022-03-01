@@ -1,63 +1,31 @@
-#include "result.hpp"
-#include <iostream>
-
-template <typename T>
-struct is_optional_helper : std::false_type
-{
-};
-
-template <typename T>
-struct is_optional_helper<std::optional<T>> : std::true_type
-{
-};
-
-template <typename T>
-using is_optional = is_optional_helper<std::remove_cvref_t<T>>;
-
-template <typename T>
-inline constexpr bool is_optional_v = is_optional<T>::value;
+#include "daveth/result.hpp"
+#include <cassert>
 
 int
 main()
 {
-  auto const r
-    = daveth::result<int, bool>{daveth::detail::success_result_t{}, true};
+  using namespace daveth::result_operators;
 
-  auto const a
-    = r.and_then([](auto const& v) -> bool {
-         static_assert(std::is_same_v<std::remove_cvref_t<decltype(v)>, bool>);
-         assert(v == true);
-         return false;
-       })
-        .or_else([](auto const& e) -> void {
-          static_assert(std::is_same_v<std::remove_cvref_t<decltype(e)>, int>);
-          assert(false && "Should not be called");
-        });
+  auto constexpr equals_42   = [](auto const& val) { return val == 42; };
+  auto constexpr big_if_true = [](auto const& val) {
+    if (val == true) return daveth::result<int, bool>::ok(99);
+    return daveth::result<int, bool>::error(false);
+  };
 
-  using t_a = decltype(a);
-  static_assert(is_optional_v<t_a>);
-  static_assert(std::is_same_v<t_a::value_type, bool>);
-  assert(a.value() == false);
+  auto const a = daveth::result<int, bool>::ok(42);
+  assert(a.is_ok());
+  assert(a.value() == 42);
 
-  r.and_then([](auto const& v) -> void {
-     static_assert(std::is_same_v<std::remove_cvref_t<decltype(v)>, bool>);
-     assert(v == true);
-   })
-    .or_else([](auto const& e) -> void {
-      static_assert(std::is_same_v<std::remove_cvref_t<decltype(e)>, int>);
-      assert(false && "Should not be called");
-    });
+  auto const b = a.map(equals_42);
+  assert(b.is_ok());
+  assert(b.value() == true);
 
-  /*
-  auto const c = a.and_then([](auto const x) -> daveth::result<int, int> {
-    static_assert(std::is_same_v<std::remove_cvref_t<decltype(x)>, bool>);
-    std::cout << x << std::endl;
-    return {daveth::detail::success_result_t{}, 42};
-  });
+  auto const c = b.bind(big_if_true);
 
-  using t_c = decltype(c);
-  static_assert(daveth::is_result_v<t_c>);
-  static_assert(std::is_same_v<t_c::value_type, int>);
-  static_assert(std::is_same_v<t_c::error_type, int>);
-  */
+  assert(c.is_ok());
+  assert(c.value() == 99);
+
+  auto const r1 = a.map(equals_42).bind(big_if_true);
+  auto const r2 = (a | equals_42) >>= big_if_true;
+  assert(r1 == r2);
 }
