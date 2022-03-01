@@ -4,8 +4,6 @@
 int
 main()
 {
-  using namespace daveth::result_operators;
-
   auto constexpr equals_42   = [](auto const& val) { return val == 42; };
   auto constexpr big_if_true = [](auto const& val) {
     if (val == true) return daveth::result<int, bool>::ok(99);
@@ -26,6 +24,8 @@ main()
   assert(c.value() == 99);
 
   auto const r1 = a.map(equals_42).bind(big_if_true);
-  auto const r2 = (a | equals_42) >>= big_if_true;
-  assert(r1 == r2);
+  assert(r1 == c);
+
+  auto const d = daveth::result<void, int>::ok();
+  assert(d.is_ok());
 }
