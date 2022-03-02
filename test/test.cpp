@@ -6,8 +6,8 @@ main()
 {
   auto constexpr equals_42   = [](auto const& val) { return val == 42; };
   auto constexpr big_if_true = [](auto const& val) {
-    if (val == true) return daveth::result<int, bool>::ok(99);
-    return daveth::result<int, bool>::error(false);
+    return val ? daveth::result<int, bool>::ok(99)
+               : daveth::result<int, bool>::error(false);
   };
 
   auto const a = daveth::result<int, bool>::ok(42);
@@ -28,4 +28,6 @@ main()
 
   auto const d = daveth::result<void, int>::ok();
   assert(d.is_ok());
+
+  auto const e = d.map([] { return 42; }).map(equals_42).bind(big_if_true);
 }

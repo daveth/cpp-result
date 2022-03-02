@@ -49,7 +49,7 @@ public:
   }
 
   constexpr void
-  value() noexcept
+  value() const noexcept
   {
     assert(is_ok() && "Cannot get value() of an error result<T, E>");
   }
@@ -85,7 +85,7 @@ public:
     using mapped_value_t = std::invoke_result_t<decltype(fn)>;
     using mapped_t       = result<mapped_value_t, error_t>;
 
-    if (this->is_ok()) return mapped_t::ok(std::invoke(fn, this->value()));
+    if (this->is_ok()) return mapped_t::ok(std::invoke(fn));
     return mapped_t::error(this->error());
   }
 
@@ -97,7 +97,7 @@ public:
     using bound_t       = std::invoke_result_t<decltype(fn)>;
     using bound_value_t = typename bound_t::value_type;
 
-    if (this->is_ok()) return std::invoke(fn, this->value());
+    if (this->is_ok()) return std::invoke(fn);
     return bound_t::error(this->error());
   }
 };
