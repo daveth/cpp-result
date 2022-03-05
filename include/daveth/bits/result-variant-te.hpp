@@ -16,35 +16,15 @@ namespace detail
 {
 // clang-format off
 template <typename res_t, typename fn_t>
-concept result_map_fn =
-     result_like<res_t>
+concept result_map_fn = result_like<res_t>
   && std::is_invocable_v<fn_t, typename res_t::value_type>
   && !result_like<std::invoke_result_t<fn_t, typename res_t::value_type>>;
-// clang-format on
 
-// clang-format off
-template <result_like res_t, result_map_fn<res_t> fn_t>
-using result_mapped_t = result<
-  std::invoke_result_t<fn_t, typename res_t::value_type>,
-  typename res_t::error_type
->;
-// clang-format on
-
-// clang-format off
 template <typename result_t, typename continuation_t>
-concept result_bind_fn =
-     result_like<result_t>
+concept result_bind_fn = result_like<result_t>
   && std::is_invocable_v<continuation_t, typename result_t::value_type>
   && result_like<std::invoke_result_t<continuation_t, typename result_t::value_type>>;
-// clang-format on
-
-// clang-format off
-template <result_like result_t, result_bind_fn<result_t> continuation_t>
-using result_bound_t = std::invoke_result<
-  continuation_t,
-  typename result_t::value_type
->;
-// clang-format on
+//clang-format on
 }
 
 template <typename value_t, typename error_t>
@@ -53,7 +33,7 @@ class [[nodiscard]] result
   static constexpr auto value_index = 0;
   static constexpr auto error_index = 1;
 
-  using thistype       = result<value_t, error_t>;
+  using this_t         = result<value_t, error_t>;
   using data_variant_t = std::variant<value_t, error_t>;
   using in_place_error = std::in_place_index_t<error_index>;
   using in_place_value = std::in_place_index_t<value_index>;
@@ -148,7 +128,7 @@ public:
   // clang-format off
   constexpr auto map(auto&& fn) const
   noexcept(std::is_nothrow_invocable_v<decltype(fn), value_t>)
-  requires detail::result_map_fn<thistype, decltype(fn)>
+  requires detail::result_map_fn<this_t, decltype(fn)>
   // clang-format on
   {
     using mapped_value_t = std::invoke_result_t<decltype(fn), value_t>;
@@ -161,7 +141,7 @@ public:
   // clang-format off
   constexpr auto bind(auto&& fn) const
   noexcept(std::is_nothrow_invocable_v<decltype(fn), value_t>)
-  requires detail::result_bind_fn<thistype, decltype(fn)>
+  requires detail::result_bind_fn<this_t, decltype(fn)>
   // clang-format on
   {
     using bound_t       = std::invoke_result_t<decltype(fn), value_t>;

@@ -15,7 +15,6 @@ namespace daveth
 template <typename error_t>
 class [[nodiscard]] result<void, error_t>
 {
-  using thistype = result<void, error_t>;
   std::optional<error_t> m_data;
 
 public:
@@ -80,6 +79,7 @@ public:
   // clang-format off
   constexpr auto map(auto&& fn) const
   noexcept(std::is_nothrow_invocable_v<decltype(fn)>)
+  requires(std::is_invocable_v<decltype(fn)>)
   // clang-format on
   {
     using mapped_value_t = std::invoke_result_t<decltype(fn)>;
@@ -92,6 +92,7 @@ public:
   // clang-format off
   constexpr auto bind(auto&& fn) const
   noexcept(std::is_nothrow_invocable_v<decltype(fn)>)
+  requires(std::is_invocable_v<decltype(fn)>)
   // clang-format on
   {
     using bound_t       = std::invoke_result_t<decltype(fn)>;
